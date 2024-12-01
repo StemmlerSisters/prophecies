@@ -12,7 +12,7 @@
     "@icij/murmur": "3.11.7",
     "@vuex-orm/core": "^0.36.4",
     "@vuex-orm/plugin-axios": "^0.9.4",
-    "axios": "^0.24.0",
+    "axios": "^1.7.8",
     "bootstrap": "4.6.2",
     "bootstrap-vue": "^2.23.1",
     "core-js": "^3.34.0",
