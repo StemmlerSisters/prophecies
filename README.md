@@ -7,13 +7,15 @@ An ICIJ app to conduct data validation and cleaning.
 | **CI checks** | [![](https://img.shields.io/github/actions/workflow/status/icij/prophecies/main.yml)](https://github.com/ICIJ/prophecies/actions) |
 | **Docker** | [![Docker](https://img.shields.io/docker/v/icij/prophecies?color=%2350ca22)](https://hub.docker.com/repository/docker/icij/prophecies) |
 | **Code Climate** | [![Maintainability](https://img.shields.io/codeclimate/maintainability/ICIJ/prophecies)](https://codeclimate.com/github/ICIJ/prophecies/maintainability) |
+| **Documentation** | 📖 [icij.gitbook.io/prophecies](https://icij.gitbook.io/prophecies) |
+| **API** | ⚡ [icij.github.io/prophecies/api.html](https://icij.github.io/prophecies/api.html) |
 
 ## Installation
 
 Required:
 
 * Python 3.10
-* Node 16.x
+* Node 18.x
 * Poetry >= 1.2
 * Yarn 1.x
 

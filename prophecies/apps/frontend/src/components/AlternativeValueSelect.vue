@@ -1,10 +1,14 @@
 <script>
 import { find, get, uniqueId } from 'lodash'
 import Multiselect from 'vue-multiselect'
+
 import ChoiceGroup from '@/models/ChoiceGroup'
 
 export default {
   name: 'AlternativeValueSelect',
+  components: {
+    Multiselect
+  },
   model: {
     prop: 'alternativeValue',
     event: 'update:alternativeValue'
@@ -16,55 +20,55 @@ export default {
     },
     choiceGroupId: {
       type: [String, Number]
-    }
-  },
-  components: {
-    Multiselect
-  },
-  methods: {
-    selectAlternativeValue ({ value = null }) {
-      /**
-         * Fired when the user selected an alternative value
-         * @event update:alternativeValue
-         * @param The alternative value
-         */
-      this.$emit('update:alternativeValue', value)
     },
-    findAlternativeValue (predicate = {}) {
-      return find(this.alternativeValues, predicate)
-    },
-    toSerializableOption (value) {
-      const id = uniqueId('arbitrary-')
-      const name = value
-      return { id, name, value }
+    disabled: {
+      type: Boolean
     }
   },
   computed: {
     alternativeValueOption: {
-      get () {
+      get() {
         if (this.isCanonical) {
           return this.findAlternativeValue({ value: this.alternativeValue })
-        } else if (this.alternativeValue !== null) {
+        }
+
+        if (this.alternativeValue !== null) {
           return this.toSerializableOption(this.alternativeValue)
         }
+
         return null
       },
-      set (option = null) {
+      set(option = null) {
         this.selectAlternativeValue(option === null ? { value: null } : option)
       }
     },
-    alternativeValues () {
+    alternativeValues() {
       return get(this, 'choiceGroup.alternativeValues', [])
     },
-    isCanonical () {
+    isCanonical() {
       const value = this.alternativeValue
       return !!this.findAlternativeValue({ value })
     },
-    choiceGroup () {
-      return ChoiceGroup
-        .query()
-        .with('alternativeValues')
-        .find(this.choiceGroupId)
+    choiceGroup() {
+      return ChoiceGroup.query().with('alternativeValues').find(this.choiceGroupId)
+    }
+  },
+  methods: {
+    selectAlternativeValue({ value = null }) {
+      /**
+       * Fired when the user selected an alternative value
+       * @event update:alternativeValue
+       * @param The alternative value
+       */
+      this.$emit('update:alternativeValue', value)
+    },
+    findAlternativeValue(predicate = {}) {
+      return find(this.alternativeValues, predicate)
+    },
+    toSerializableOption(value) {
+      const id = uniqueId('arbitrary-')
+      const name = value
+      return { id, name, value }
     }
   }
 }
@@ -73,15 +77,17 @@ export default {
 <template>
   <div class="alternative-value-select pb-3">
     <multiselect
-      class="multiselect--md"
-      :placeholder="$t('alternativeValueSelect.selectTheCorrectValue')"
       v-model="alternativeValueOption"
+      class="multiselect--md"
+      :disabled="disabled"
+      :placeholder="$t('alternativeValueSelect.selectTheCorrectValue')"
       label="name"
       track-by="value"
       taggable
       :tag-placeholder="$t('alternativeValueSelect.useThisExactValue')"
       tag-position="bottom"
+      :options="alternativeValues"
       @tag="selectAlternativeValue({ value: $event })"
-      :options="alternativeValues" />
+    />
   </div>
 </template>

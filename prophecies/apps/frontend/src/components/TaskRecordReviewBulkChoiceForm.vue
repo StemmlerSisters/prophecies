@@ -1,5 +1,6 @@
 <script>
-import { find, get } from 'lodash'
+import { some, get } from 'lodash'
+
 import Choice from '@/models/Choice'
 import ChoiceGroup from '@/models/ChoiceGroup'
 import Task from '@/models/Task'
@@ -8,6 +9,10 @@ import ChoiceGroupButtons from '@/components/ChoiceGroupButtons'
 
 export default {
   name: 'TaskRecordReviewBulkChoiceForm',
+  components: {
+    AlternativeValueSelect,
+    ChoiceGroupButtons
+  },
   props: {
     taskId: {
       type: [String, Number]
@@ -23,18 +28,54 @@ export default {
       default: '.alternative-value-select input'
     }
   },
-  components: {
-    AlternativeValueSelect,
-    ChoiceGroupButtons
+  data() {
+    return {
+      alternativeValueChoice: null
+    }
+  },
+  computed: {
+    alternativeValue: {
+      get() {
+        return get(this, 'taskRecordReview.alternativeValue', null)
+      },
+      set(alternativeValue) {
+        return this.selectChoice(this.alternativeValueChoice, alternativeValue)
+      }
+    },
+    choiceId: {
+      get() {
+        return get(this, 'taskRecordReview.choiceId', null)
+      },
+      set(choiceId) {
+        this.alternativeValueChoice = Choice.find(choiceId)
+        return this.selectChoice(this.alternativeValueChoice, this.alternativeValue)
+      }
+    },
+    choiceGroupId() {
+      return get(this, 'choiceGroup.id', null)
+    },
+    choiceGroup() {
+      return ChoiceGroup.query().with('choices').find(this.task.choiceGroupId)
+    },
+    task() {
+      return Task.find(this.taskId)
+    },
+    canSelectAlternativeValue() {
+      const choices = get(this, 'choiceGroup.choices', [])
+      return !!some(choices, { requireAlternativeValue: true })
+    },
+    disabledAlternativeValue() {
+      return !this.alternativeValueChoice
+    }
   },
   methods: {
-    focusOnAlternativeValueInput () {
+    focusOnAlternativeValueInput() {
       const input = this.$el.querySelector(this.alternativeValueInputSelector)
       if (input) {
         input.focus()
       }
     },
-    selectChoice (choice, alternativeValue = null) {
+    selectChoice(choice, alternativeValue = null) {
       if (choice.requireAlternativeValue && !alternativeValue) {
         return this.focusOnAlternativeValueInput()
       }
@@ -46,41 +87,6 @@ export default {
        */
       this.$emit('submit', { alternativeValue, choice })
     }
-  },
-  computed: {
-    alternativeValue: {
-      get () {
-        return get(this, 'taskRecordReview.alternativeValue', null)
-      },
-      set (alternativeValue) {
-        return this.selectChoice(this.alternativeValueChoice, alternativeValue)
-      }
-    },
-    choiceId: {
-      get () {
-        return get(this, 'taskRecordReview.choiceId', null)
-      },
-      set (choiceId) {
-        const choice = Choice.find(choiceId)
-        return this.selectChoice(choice)
-      }
-    },
-    choiceGroupId () {
-      return get(this, 'choiceGroup.id', null)
-    },
-    choiceGroup () {
-      return ChoiceGroup
-        .query()
-        .with('choices')
-        .find(this.task.choiceGroupId)
-    },
-    task () {
-      return Task.find(this.taskId)
-    },
-    alternativeValueChoice () {
-      const choices = get(this, 'choiceGroup.choices', [])
-      return find(choices, { requireAlternativeValue: true })
-    }
   }
 }
 </script>
@@ -88,39 +94,43 @@ export default {
 <template>
   <fieldset :disabled="disabled" class="task-record-review-bulk-choice-form">
     <choice-group-buttons
-      class="task-record-review-bulk-choice-form__choices"
       v-model="choiceId"
+      class="task-record-review-bulk-choice-form__choices"
       :activate-shortkeys="activateShortkeys"
-      :choice-group-id="choiceGroupId" />
+      :choice-group-id="choiceGroupId"
+    />
     <alternative-value-select
-      class="task-record-review-bulk-choice-form__alternative-value"
+      v-if="canSelectAlternativeValue"
       ref="alternativeValueInput"
-      small
-      v-if="alternativeValueChoice"
       v-model="alternativeValue"
-      :choice-group-id="choiceGroupId" />
+      class="task-record-review-bulk-choice-form__alternative-value"
+      small
+      :disabled="disabledAlternativeValue"
+      :choice-group-id="choiceGroupId"
+    />
   </fieldset>
 </template>
 
 <style lang="scss" scoped>
-  .task-record-review-bulk-choice-form {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
+.task-record-review-bulk-choice-form {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
 
-    &__choices, &__alternative-value {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    &__choices {
-      margin-right: $spacer-xs;
-    }
-
-    &__alternative-value {
-      max-width: 400px;
-      width: 100%;
-    }
+  &__choices,
+  &__alternative-value {
+    margin-top: 0;
+    margin-bottom: 0;
   }
+
+  &__choices {
+    margin-right: $spacer-xs;
+  }
+
+  &__alternative-value {
+    max-width: 400px;
+    width: 100%;
+  }
+}
 </style>
